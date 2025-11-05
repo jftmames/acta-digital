@@ -1,29 +1,42 @@
 import streamlit as st
-st.title("Acta Digital")
-st.write("Esta es tu primera app en Streamlit.")
 import hashlib, time, json
 
+# --- Función utilitaria para crear hash ---
+def get_hash(text):
+    return hashlib.sha256(text.encode()).hexdigest()
 
-st.title("Acta Digital — Import Test")
-
-st.write("✅ Librerías importadas:")
-st.code("streamlit, hashlib, time, json")
-
-# --- Función de verificación ---
+# --- Función para verificar coincidencia ---
 def verify_hash(text, original_hash):
     return get_hash(text) == original_hash
 
-st.subheader("🔍 Verificar autenticidad de un acta")
 
-texto_verificar = st.text_area("Introduce el texto a verificar:")
-hash_verificar = st.text_input("Introduce el hash original:")
+st.title("🧾 Acta Digital — Generar y Verificar Hash")
 
-if st.button("Verificar"):
-    if verify_hash(texto_verificar, hash_verificar):
-        st.success("✅ El texto coincide con el hash. El acta es íntegra.")
+st.header("1️⃣ Generar hash de un texto")
+texto = st.text_area("Escribe el contenido del acta:")
+if st.button("Generar hash"):
+    if texto:
+        hash_generado = get_hash(texto)
+        st.session_state["hash_actual"] = hash_generado
+        st.success("✅ Hash generado correctamente")
+        st.code(hash_generado)
     else:
-        st.error("⚠️ El texto no coincide. El acta ha sido modificada o el hash es incorrecto.")
+        st.warning("Introduce un texto antes de generar el hash.")
 
+st.divider()
+
+st.header("2️⃣ Verificar hash")
+texto_verificar = st.text_area("Texto a verificar:")
+hash_verificar = st.text_input("Hash a comprobar:", value=st.session_state.get("hash_actual", ""))
+
+if st.button("Verificar hash"):
+    if texto_verificar and hash_verificar:
+        if verify_hash(texto_verificar, hash_verificar):
+            st.success("🎯 Coincide: el texto es íntegro.")
+        else:
+            st.error("⚠️ No coincide: el texto fue modificado o el hash es distinto.")
+    else:
+        st.warning("Completa ambos campos para verificar.")
 
 st.write("Timestamp:", time.time())
 st.write("Ejemplo JSON:", json.dumps({"ok": True, "msg": "listo"}))
